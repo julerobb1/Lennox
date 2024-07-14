@@ -1,0 +1,61 @@
+#include <Modbus.h>
+
+// Define the Modbus slave ID and address
+#define SLAVE_ID 1
+#define ADDRESS 0x01
+
+// Define the Modbus device object
+Modbus device(SLAVE_ID, ADDRESS);
+
+// Define the thermostat settings
+int temperature_setpoint = 20;
+int mode = 0; // 0 = heat, 1 = cool, 2 = auto, 3 = off
+int fan_speed = 0; // 0 = low, 1 = medium, 2 = high
+int fan_mode = 0; // 0 = auto, 1 = on
+int alarm_state = 0; // 0 = off, 1 = on
+
+// Define the sensor inputs
+int temperature_sensor = 25;
+int humidity_sensor = 60;
+int outdoor_temperature_sensor = -10;
+int indoor_temperature_sensor = 20;
+int humidity_indoor_sensor = 40;
+
+// Define the alarm threshold values
+int temperature_alarm_threshold = 25;
+int humidity_alarm_threshold = 80;
+
+// Define the indoor unit settings
+int indoor_unit_mode = 0; // 0 = heat, 1 = cool, 2 = dehumidify
+int indoor_unit_speed = 0; // 0 = low, 1 = medium, 2 = high
+
+// Define the outdoor unit settings
+int outdoor_unit_status = 0; // 0 = not running, 1 = running
+
+// Define the wiring connections
+const char* wiring[8] = {"Y", "Y2", "W", "W2", "G", "C", "R", "RC"};
+
+void setup() {
+  // Initialize the Modbus device
+  device.begin();
+
+  // Set the initial thermostat settings
+  device.writeRegister(0x0000, temperature_setpoint);
+  device.writeRegister(0x0001, mode);
+  device.writeRegister(0x0002, fan_speed);
+  device.writeRegister(0x0003, fan_mode);
+}
+
+void loop() {
+  // Read sensor inputs
+  temperature_sensor = read_temperature_sensor();
+  humidity_sensor = read_humidity_sensor();
+  outdoor_temperature_sensor = read_outdoor_temperature_sensor();
+  indoor_temperature_sensor = read_indoor_temperature_sensor();
+  humidity_indoor_sensor = read_humidity_indoor_sensor();
+
+  // Update the thermostat settings based on sensor inputs
+  if (temperature_sensor > temperature_alarm_threshold) {
+    alarm_state = 1;
+  } else {
+    alarm_state =

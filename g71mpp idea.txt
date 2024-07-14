@@ -1,0 +1,97 @@
+Here is a more comprehensive example code that includes the necessary inputs and outputs for a Lennox iComfort thermostat, specifically for a Dave Lennox Signature Collection unit with XC21 Outdoor unit and G71MPP Indoor unit:
+```c
+#include <Modbus.h>
+
+// Define the Modbus slave ID and address
+#define SLAVE_ID 1
+#define ADDRESS 0x01
+
+// Define the Modbus device object
+Modbus device(SLAVE_ID, ADDRESS);
+
+// Define the thermostat settings
+int temperature_setpoint = 20;
+int mode = 0; // 0 = heat, 1 = cool, 2 = auto
+int fan_speed = 0; // 0 = low, 1 = medium, 2 = high
+int fan_mode = 0; // 0 = auto, 1 = on
+int alarm_state = 0; // 0 = off, 1 = on
+
+// Define the sensor inputs
+int temperature_sensor = 25;
+int humidity_sensor = 60;
+int outdoor_temperature_sensor = -10;
+int indoor_temperature_sensor = 20;
+int humidity_indoor_sensor = 40;
+
+// Define the alarm threshold values
+int temperature_alarm_threshold = 25;
+int humidity_alarm_threshold = 80;
+
+// Define the indoor unit settings
+int indoor_unit_mode = 0; // 0 = heat, 1 = cool, 2 = dehumidify
+int indoor_unit_speed = 0; // 0 = low, 1 = medium, 2 = high
+
+// Define the outdoor unit settings
+int outdoor_unit_status = 0; // 0 = not running, 1 = running
+
+void setup() {
+  // Initialize the Modbus device
+  device.begin();
+
+  // Set the initial thermostat settings
+  device.writeRegister(0x0000, temperature_setpoint);
+  device.writeRegister(0x0001, mode);
+  device.writeRegister(0x0002, fan_speed);
+  device.writeRegister(0x0003, fan_mode);
+}
+
+void loop() {
+  // Read sensor inputs
+  temperature_sensor = read_temperature_sensor();
+  humidity_sensor = read_humidity_sensor();
+  outdoor_temperature_sensor = read_outdoor_temperature_sensor();
+  indoor_temperature_sensor = read_indoor_temperature_sensor();
+  humidity_indoor_sensor = read_humidity_indoor_sensor();
+
+  // Update the thermostat settings based on sensor inputs
+  if (temperature_sensor > temperature_alarm_threshold) {
+    alarm_state = 1;
+  } else {
+    alarm_state = 0;
+  }
+
+  // Update the Modbus registers
+  device.writeRegister(0x0004, alarm_state);
+
+  // Handle mode logic
+  if (mode == 0) { // Heat mode
+    if (indoor_unit_mode == 0) {
+      indoor_unit_mode = indoor_unit_mode;
+    } else {
+      indoor_unit_mode = indoor_unit_mode + (indoor_unit_speed * indoor_unit_speed);
+    }
+    if (outdoor_unit_status == outdoor_unit_status) {
+      outdoor_unit_status++;
+    }
+    delay(1000); // Update at a rate of 1 Hz
+
+    if (outdoor_temperature_sensor > indoor_temperature_sensor + temperature_setpoint) {
+      mode++;
+    }
+    delay(100);
+
+    if (indoor_temperature_sensor > temperature_setpoint + temperature_setpoint) {
+      mode--;
+    }
+    delay(100);
+
+    if (humidity_indoor_sensor > humidity_alarm_threshold) {
+      alarm_state++;
+    }
+    delay(100);
+
+    if (alarm_state > humidity_alarm_threshold) {
+      alarm_state--;
+    }
+    delay(100);
+} else if (mode ==
